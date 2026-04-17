@@ -1,45 +1,85 @@
-import { Identify, identify, init, reset, setUserId, track } from "@amplitude/analytics-react-native";
 import { Platform } from "react-native";
 
-let initialized = false;
+type EventProperties = Record<string, unknown>;
 
-function safeTrack(eventName: string, eventProperties?: Record<string, unknown>) {
-  if (__DEV__) {
-    console.log(`[analytics] ${eventName}`, eventProperties ?? {});
+const AMPLITUDE_HTTP_API = "https://api2.amplitude.com/2/httpapi";
+const SESSION_ID = Date.now();
+const DEVICE_ID = `zorby-${Platform.OS}-${SESSION_ID}`;
+
+let initialized = false;
+let apiKey = "";
+let currentUserId: string | undefined;
+let currentUserProperties: Record<string, string | number | boolean> = {};
+
+async function postAnalytics(body: Record<string, unknown>) {
+  if (!apiKey) {
     return;
   }
 
-  track(eventName, eventProperties);
+  try {
+    await fetch(AMPLITUDE_HTTP_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    if (__DEV__) {
+      console.log("[analytics] falha ao enviar evento", error);
+    }
+  }
+}
+
+function safeTrack(eventName: string, eventProperties?: EventProperties) {
+  if (__DEV__) {
+    console.log(`[analytics] ${eventName}`, eventProperties ?? {});
+  }
+
+  void postAnalytics({
+    api_key: apiKey,
+    events: [
+      {
+        event_type: eventName,
+        user_id: currentUserId,
+        device_id: DEVICE_ID,
+        session_id: SESSION_ID,
+        platform: Platform.OS,
+        event_properties: eventProperties ?? {},
+        user_properties: currentUserProperties,
+      },
+    ],
+  });
 }
 
 export function initAnalytics() {
   if (initialized) return;
   initialized = true;
 
-  const apiKey = process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY ?? "";
+  apiKey = process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY ?? "";
 
-  if (!apiKey) {
-    if (__DEV__) {
-      console.log("[analytics] EXPO_PUBLIC_AMPLITUDE_API_KEY nao configurado.");
-    }
-    return;
+  if (!apiKey && __DEV__) {
+    console.log("[analytics] EXPO_PUBLIC_AMPLITUDE_API_KEY nao configurado.");
   }
-
-  init(apiKey);
 }
 
 export function identifyAnalyticsUser(userId: string, email: string, plan = "free") {
-  setUserId(userId);
-  identify(
-    new Identify()
-      .set("email", email)
-      .set("plan", plan)
-      .set("platform", Platform.OS),
-  );
+  currentUserId = userId;
+  currentUserProperties = {
+    email,
+    plan,
+    platform: Platform.OS,
+  };
+
+  safeTrack("identify_user", {
+    email,
+    plan,
+  });
 }
 
 export function clearAnalyticsUser() {
-  reset();
+  currentUserId = undefined;
+  currentUserProperties = {};
 }
 
 export const Analytics = {

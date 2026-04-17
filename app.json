@@ -59,8 +59,7 @@
         {
           "locationWhenInUsePermission": "Permita sua localizacao para descobrir negocios proximos e ordenar os resultados por proximidade."
         }
-      ],
-      "@sentry/react-native"
+      ]
     ],
     "extra": {
       "apiUrl": "https://zorby-web.onrender.com",
