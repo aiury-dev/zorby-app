@@ -43,6 +43,9 @@ export type PublicBusiness = {
   brandPrimaryColor: string | null;
   brandSecondaryColor: string | null;
   cancellationPolicyText: string | null;
+  requiresUpfrontPayment?: boolean;
+  allowPayOnSite?: boolean;
+  upfrontPaymentPercentage?: number | null;
   timezone: string;
   services: Array<{
     id: string;
@@ -86,22 +89,67 @@ export type AvailabilitySlot = {
   label: string;
 };
 
+export type BookingStatus = "CONFIRMED" | "PENDING" | "CANCELLED";
+export type BusinessAppointmentStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CANCELLED"
+  | "CANCELED"
+  | "NO_SHOW"
+  | "COMPLETED";
+
 export type SavedBooking = {
   appointmentId: string;
   businessSlug: string;
   businessName: string;
+  serviceId?: string;
   serviceName: string;
   professionalName: string;
   startsAt: string;
+  durationMinutes?: number;
   addressLabel?: string;
+  businessPhone?: string;
+  businessLogoUrl?: string;
+  serviceVariantName?: string;
+  priceCents?: number;
+  paymentId?: string;
+  paymentStatus?: "pending" | "approved" | "rejected" | "cancelled" | "refunded";
+  status?: BookingStatus;
+  customerRating?: number;
+  customerReviewBody?: string;
+  reviewedAt?: string;
   cancelToken: string;
   rescheduleToken: string;
+};
+
+export type CustomerPayment = {
+  id: string;
+  businessName: string;
+  amountCents: number;
+  status: "paid" | "refunded" | "pending";
+  paidAt: string;
 };
 
 export type SavedProfile = {
   name: string;
   email: string;
   phone: string;
+};
+
+export type CustomerSession = {
+  token: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    avatarUrl: string | null;
+  };
+};
+
+export type AppPreferences = {
+  notificationsEnabled: boolean;
 };
 
 export type BusinessMobileSession = {
@@ -160,15 +208,18 @@ export type BusinessDashboard = {
 
 export type BusinessAgendaItem = {
   id: string;
+  serviceId?: string;
   customerNameSnapshot: string;
   customerPhoneSnapshot: string;
   serviceNameSnapshot: string;
   startsAtUtc: string;
   endsAtUtc: string;
-  status: string;
+  status: BusinessAppointmentStatus;
   priceCents: number;
   professional: {
+    id?: string;
     displayName: string;
     roleLabel: string | null;
+    photoUrl?: string | null;
   };
 };
