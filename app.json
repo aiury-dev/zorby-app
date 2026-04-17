@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Zorby",
+    "slug": "zorby-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "zorby",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zorby.app"
+    },
+    "android": {
+      "package": "com.zorby.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permita sua localização para descobrir negócios próximos e ordenar os resultados por proximidade."
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://zorby-web.onrender.com"
+    }
+  }
+}
