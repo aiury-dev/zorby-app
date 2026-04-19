@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Animated,
-  type DimensionValue,
   FlatList,
   Image,
   Modal,
@@ -31,6 +29,7 @@ import {
 import { fetchBusiness } from "../lib/api";
 import { colors, radii, shadows, spacing } from "../theme";
 import type { PublicBusiness } from "../types";
+import { SkeletonCard } from "../components/ui/SkeletonCard";
 import { ProfessionalCard } from "../components/ProfessionalCard";
 import { ReviewCard } from "../components/ReviewCard";
 import { ServiceCard } from "../components/ServiceCard";
@@ -138,15 +137,10 @@ function getMinPrice(services: PublicBusiness["services"]) {
   return Math.min(...services.map((service) => service.priceCents));
 }
 
-function SkeletonLine({ width }: { width: DimensionValue }) {
-  return <View style={[styles.skeletonLine, { width }]} />;
-}
-
 export function BusinessScreen({ route, navigation }: Props) {
   const { slug } = route.params;
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
-  const shimmer = useRef(new Animated.Value(0.4)).current;
 
   const [business, setBusiness] = useState<PublicBusiness | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -155,26 +149,6 @@ export function BusinessScreen({ route, navigation }: Props) {
   const [reviewsOpen, setReviewsOpen] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmer, {
-          toValue: 0.4,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    loop.start();
-    return () => loop.stop();
-  }, [shimmer]);
 
   useEffect(() => {
     let active = true;
@@ -279,34 +253,35 @@ export function BusinessScreen({ route, navigation }: Props) {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["left", "right"]}>
-        <Animated.ScrollView
+        <ScrollView
           scrollEnabled={false}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: spacing.xxxl }]}
-          style={{ opacity: shimmer }}
         >
-          <View style={styles.loadingCover} />
-          <View style={styles.loadingCard}>
-            <SkeletonLine width="55%" />
-            <SkeletonLine width="24%" />
-            <SkeletonLine width="70%" />
-            <SkeletonLine width="88%" />
-            <SkeletonLine width="62%" />
-          </View>
-          <View style={styles.loadingCard}>
-            <SkeletonLine width="35%" />
-            <SkeletonLine width="92%" />
-            <SkeletonLine width="84%" />
-            <SkeletonLine width="68%" />
-          </View>
-          <View style={styles.loadingCard}>
-            <SkeletonLine width="28%" />
+          <SkeletonCard style={styles.loadingCoverCard} contentStyle={styles.loadingCoverContent}>
+            <View style={styles.loadingCover} />
+          </SkeletonCard>
+          <SkeletonCard style={styles.loadingCard} contentStyle={styles.loadingCardContent}>
+            <View style={[styles.skeletonLine, styles.loadingTitleLine]} />
+            <View style={[styles.skeletonLine, styles.loadingBadgeLine]} />
+            <View style={[styles.skeletonLine, styles.loadingWideLine]} />
+            <View style={[styles.skeletonLine, styles.loadingFullLine]} />
+            <View style={[styles.skeletonLine, styles.loadingMediumLine]} />
+          </SkeletonCard>
+          <SkeletonCard style={styles.loadingCard} contentStyle={styles.loadingCardContent}>
+            <View style={[styles.skeletonLine, styles.loadingSectionLine]} />
+            <View style={[styles.skeletonLine, styles.loadingFullLine]} />
+            <View style={[styles.skeletonLine, styles.loadingWideLine]} />
+            <View style={[styles.skeletonLine, styles.loadingMediumLine]} />
+          </SkeletonCard>
+          <SkeletonCard style={styles.loadingCard} contentStyle={styles.loadingCardContent}>
+            <View style={[styles.skeletonLine, styles.loadingServiceHeaderLine]} />
             <View style={styles.loadingServiceList}>
               {Array.from({ length: 3 }, (_, index) => (
                 <View key={`service-skeleton-${index}`} style={styles.loadingServiceCard} />
               ))}
             </View>
-          </View>
-        </Animated.ScrollView>
+          </SkeletonCard>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -638,7 +613,7 @@ export function BusinessScreen({ route, navigation }: Props) {
           disabled={services.length === 0}
           onPress={() => navigation.navigate("Booking", { slug: business.slug })}
         >
-          {isLoading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.ctaButtonText}>{services.length > 0 ? "Agendar agora" : "Indisponivel"}</Text>}
+          <Text style={styles.ctaButtonText}>{services.length > 0 ? "Agendar agora" : "Indisponivel"}</Text>
         </Pressable>
       </View>
 
@@ -1113,24 +1088,50 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "80%",
   },
+  loadingCoverCard: {
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.md,
+  },
+  loadingCoverContent: {
+    padding: 0,
+  },
   loadingCover: {
     height: COVER_HEIGHT,
     backgroundColor: colors.surfaceMuted,
-    marginBottom: spacing.lg,
   },
   loadingCard: {
-    backgroundColor: colors.surfaceCard,
-    borderRadius: radii.xl,
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
+  },
+  loadingCardContent: {
     padding: spacing.lg,
     gap: spacing.md,
-    ...shadows.card,
   },
   skeletonLine: {
     height: 14,
     borderRadius: radii.pill,
     backgroundColor: colors.surfaceMuted,
+  },
+  loadingTitleLine: {
+    width: "55%",
+  },
+  loadingBadgeLine: {
+    width: "24%",
+  },
+  loadingWideLine: {
+    width: "70%",
+  },
+  loadingFullLine: {
+    width: "100%",
+  },
+  loadingMediumLine: {
+    width: "62%",
+  },
+  loadingSectionLine: {
+    width: "35%",
+  },
+  loadingServiceHeaderLine: {
+    width: "28%",
   },
   loadingServiceList: {
     gap: spacing.md,

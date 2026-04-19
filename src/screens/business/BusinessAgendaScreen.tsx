@@ -37,6 +37,8 @@ function buildDateOptions() {
   });
 }
 
+const BUSINESS_AGENDA_DATE_OPTIONS = buildDateOptions();
+
 function toDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -55,7 +57,7 @@ export function BusinessAgendaScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<AgendaTabKey>("all");
   const [busyActionId, setBusyActionId] = useState<string | null>(null);
   const lastNotificationSignature = useRef<string | null>(null);
-  const dates = useMemo(() => buildDateOptions(), []);
+  const dates = BUSINESS_AGENDA_DATE_OPTIONS;
 
   const loadAgenda = useCallback(async (showLoader = true) => {
     const current = await loadBusinessSession();

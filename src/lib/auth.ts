@@ -42,10 +42,12 @@ async function authRequest<T>(path: string, init?: RequestInit) {
     ...init,
   });
 
-  const data = await response.json().catch(() => ({}));
+  const data = await response.json().catch(() => ({} as Record<string, unknown>));
 
   if (!response.ok) {
-    throw new Error(data.error ?? "Não foi possível concluir a autenticação.");
+    const errorMessage =
+      typeof data.error === "string" ? data.error : "Nao foi possivel concluir a autenticacao.";
+    throw new Error(errorMessage);
   }
 
   return data as T;
@@ -80,7 +82,7 @@ function normalizeRemoteBooking(booking: RemoteBooking): SavedBooking {
 export async function syncCustomerBookings(session: CustomerSession) {
   const localBookings = await loadSavedBookings();
 
-  await authRequest("/customer/migrate-bookings", {
+  await authRequest("/api/customer/migrate-bookings", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${session.token}`,
@@ -90,7 +92,7 @@ export async function syncCustomerBookings(session: CustomerSession) {
     }),
   }).catch(() => null);
 
-  const remote = await authRequest<{ bookings: RemoteBooking[] }>("/customer/bookings", {
+  const remote = await authRequest<{ bookings: RemoteBooking[] }>("/api/customer/bookings", {
     headers: {
       Authorization: `Bearer ${session.token}`,
     },
@@ -98,7 +100,9 @@ export async function syncCustomerBookings(session: CustomerSession) {
 
   const merged = new Map<string, SavedBooking>();
   localBookings.forEach((booking) => merged.set(booking.appointmentId, booking));
-  remote.bookings.map(normalizeRemoteBooking).forEach((booking) => merged.set(booking.appointmentId, booking));
+  remote.bookings
+    .map(normalizeRemoteBooking)
+    .forEach((booking) => merged.set(booking.appointmentId, booking));
 
   for (const booking of merged.values()) {
     await saveBooking(booking);
@@ -108,7 +112,7 @@ export async function syncCustomerBookings(session: CustomerSession) {
 }
 
 export async function registerCustomer(name: string, email: string, password: string, phone: string) {
-  const session = await authRequest<AuthSessionResponse>("/auth/customer/register", {
+  const session = await authRequest<AuthSessionResponse>("/api/auth/customer/register", {
     method: "POST",
     body: JSON.stringify({ name, email, password, phone }),
   });
@@ -119,7 +123,7 @@ export async function registerCustomer(name: string, email: string, password: st
 }
 
 export async function loginCustomer(email: string, password: string) {
-  const session = await authRequest<AuthSessionResponse>("/auth/customer/login", {
+  const session = await authRequest<AuthSessionResponse>("/api/auth/customer/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
@@ -133,7 +137,7 @@ export async function loginWithGoogle() {
   const clientId = process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID;
 
   if (!clientId) {
-    throw new Error("Google OAuth ainda não está configurado neste app.");
+    throw new Error("Google OAuth ainda nao esta configurado neste app.");
   }
 
   const redirectUri = AuthSession.makeRedirectUri({
@@ -157,10 +161,10 @@ export async function loginWithGoogle() {
 
   const idToken = typeof result.params.id_token === "string" ? result.params.id_token : null;
   if (!idToken) {
-    throw new Error("Não foi possível obter o token do Google.");
+    throw new Error("Nao foi possivel obter o token do Google.");
   }
 
-  const session = await authRequest<AuthSessionResponse>("/auth/customer/google", {
+  const session = await authRequest<AuthSessionResponse>("/api/auth/customer/google", {
     method: "POST",
     body: JSON.stringify({ idToken }),
   });
@@ -175,7 +179,7 @@ export async function refreshCustomerToken() {
   if (!session) return null;
 
   try {
-    const refreshed = await authRequest<AuthSessionResponse>("/auth/customer/refresh", {
+    const refreshed = await authRequest<AuthSessionResponse>("/api/auth/customer/refresh", {
       method: "POST",
       body: JSON.stringify({ refreshToken: session.refreshToken }),
     });
@@ -190,7 +194,7 @@ export async function refreshCustomerToken() {
 export async function logoutCustomer() {
   const session = await loadCustomerSession();
   if (session) {
-    await authRequest("/auth/customer/logout", {
+    await authRequest("/api/auth/customer/logout", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${session.token}`,
@@ -202,8 +206,9 @@ export async function logoutCustomer() {
 }
 
 export async function forgotPassword(email: string) {
-  return authRequest<{ ok: true }>("/auth/customer/forgot-password", {
+  return authRequest<{ ok: true }>("/api/auth/customer/forgot-password", {
     method: "POST",
     body: JSON.stringify({ email }),
   });
 }
+

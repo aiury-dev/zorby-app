@@ -1,22 +1,20 @@
 import React, { useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
-import { Lock, Mail, Eye, EyeOff, Sparkles } from "lucide-react-native";
+import { Eye, EyeOff, Lock, Mail, Sparkles } from "lucide-react-native";
 import { Analytics, identifyAnalyticsUser } from "../../lib/analytics";
 import { setUserContext } from "../../lib/crash";
 import { loginCustomer, loginWithGoogle } from "../../lib/auth";
-import { loadStoredPushToken, registerForPushNotificationsAsync, savePushTokenToBackend } from "../../lib/notifications";
+import {
+  loadStoredPushToken,
+  registerForPushNotificationsAsync,
+  savePushTokenToBackend,
+} from "../../lib/notifications";
 import { useToast } from "../../hooks/useToast";
-import { colors, radii, shadows, spacing, typography } from "../../theme";
 import { PressableScale } from "../../components/ui/PressableScale";
+import { colors, radii, shadows, spacing, typography } from "../../theme";
 import type { RootStackParamList } from "../../../App";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -27,6 +25,7 @@ function isValidEmail(email: string) {
 
 export function LoginScreen({ navigation }: Props) {
   const { showToast } = useToast();
+  const googleEnabled = Boolean(process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +33,7 @@ export function LoginScreen({ navigation }: Props) {
 
   const emailError = useMemo(() => {
     if (!email) return null;
-    return isValidEmail(email) ? null : "Digite um e-mail válido.";
+    return isValidEmail(email) ? null : "Digite um e-mail valido.";
   }, [email]);
 
   const passwordError = useMemo(() => {
@@ -53,7 +52,7 @@ export function LoginScreen({ navigation }: Props) {
 
   const handleLogin = async () => {
     if (!email || !isValidEmail(email)) {
-      showToast("Digite um e-mail válido.", "warning");
+      showToast("Digite um e-mail valido.", "warning");
       return;
     }
 
@@ -71,7 +70,7 @@ export function LoginScreen({ navigation }: Props) {
       await handleSuccess(session.token);
     } catch (error) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      showToast(error instanceof Error ? error.message : "Não foi possível entrar.", "error");
+      showToast(error instanceof Error ? error.message : "Nao foi possivel entrar.", "error");
     } finally {
       setBusy(null);
     }
@@ -103,7 +102,7 @@ export function LoginScreen({ navigation }: Props) {
 
         <View style={styles.header}>
           <Text style={styles.title}>Bem-vindo de volta</Text>
-          <Text style={styles.subtitle}>Entre para agendar seus serviços favoritos</Text>
+          <Text style={styles.subtitle}>Entre para agendar seus servicos favoritos</Text>
         </View>
 
         <View style={styles.form}>
@@ -131,33 +130,58 @@ export function LoginScreen({ navigation }: Props) {
               placeholderTextColor={colors.textMuted}
               style={styles.input}
             />
-            <PressableScale style={styles.iconButton} onPress={() => setShowPassword((current) => !current)}>
-              {showPassword ? <EyeOff size={18} color={colors.textMuted} /> : <Eye size={18} color={colors.textMuted} />}
+            <PressableScale
+              style={styles.iconButton}
+              onPress={() => setShowPassword((current) => !current)}
+            >
+              {showPassword ? (
+                <EyeOff size={18} color={colors.textMuted} />
+              ) : (
+                <Eye size={18} color={colors.textMuted} />
+              )}
             </PressableScale>
           </View>
           {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-          <PressableScale style={styles.forgotButton} onPress={() => navigation.navigate("ForgotPassword")}>
+          <PressableScale
+            style={styles.forgotButton}
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
             <Text style={styles.forgotLabel}>Esqueci minha senha</Text>
           </PressableScale>
 
-          <PressableScale style={[styles.primaryButton, busy === "email" && styles.primaryButtonDisabled]} onPress={() => void handleLogin()}>
-            {busy === "email" ? <ActivityIndicator color={colors.white} /> : <Text style={styles.primaryButtonLabel}>Entrar</Text>}
+          <PressableScale
+            style={[styles.primaryButton, busy === "email" && styles.primaryButtonDisabled]}
+            onPress={() => void handleLogin()}
+          >
+            {busy === "email" ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <Text style={styles.primaryButtonLabel}>Entrar</Text>
+            )}
           </PressableScale>
         </View>
 
-        <View style={styles.dividerRow}>
-          <View style={styles.divider} />
-          <Text style={styles.dividerText}>ou continue com</Text>
-          <View style={styles.divider} />
-        </View>
+        {googleEnabled ? (
+          <>
+            <View style={styles.dividerRow}>
+              <View style={styles.divider} />
+              <Text style={styles.dividerText}>ou continue com</Text>
+              <View style={styles.divider} />
+            </View>
 
-        <PressableScale style={styles.googleButton} onPress={() => void handleGoogle()}>
-          {busy === "google" ? <ActivityIndicator color={colors.textDark} /> : <Text style={styles.googleButtonLabel}>Entrar com Google</Text>}
-        </PressableScale>
+            <PressableScale style={styles.googleButton} onPress={() => void handleGoogle()}>
+              {busy === "google" ? (
+                <ActivityIndicator color={colors.textDark} />
+              ) : (
+                <Text style={styles.googleButtonLabel}>Entrar com Google</Text>
+              )}
+            </PressableScale>
+          </>
+        ) : null}
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Não tem conta?</Text>
+          <Text style={styles.footerText}>Nao tem conta?</Text>
           <PressableScale style={styles.footerAction} onPress={() => navigation.navigate("Register")}>
             <Text style={styles.footerActionLabel}>Criar conta</Text>
           </PressableScale>
@@ -305,3 +329,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+

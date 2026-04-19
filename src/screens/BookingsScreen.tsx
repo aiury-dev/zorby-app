@@ -282,6 +282,7 @@ export function BookingsScreen({ navigation }: Props) {
   const loadBookings = useCallback(async (showLoader = true) => {
     try {
       if (showLoader) setLoading(true);
+      // TODO: buscar agendamentos via API além do AsyncStorage local, para sincronizar com web e outros dispositivos
       const saved = await loadSavedBookings();
       setBookings(saved);
     } finally {

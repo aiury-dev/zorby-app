@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AppPreferences, BusinessMobileSession, CustomerSession, SavedBooking, SavedProfile } from "../types";
 
+// TODO: favoritos e bookings salvos localmente - sem sync com backend ainda
 const BOOKINGS_KEY = "zorby.mobile.savedBookings";
 const PROFILE_KEY = "zorby.mobile.savedProfile";
 const CUSTOMER_SESSION_KEY = "zorby.mobile.customerSession";

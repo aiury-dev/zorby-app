@@ -55,6 +55,8 @@ function buildDateOptions() {
   });
 }
 
+const BOOKING_DATE_OPTIONS = buildDateOptions();
+
 function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
@@ -313,7 +315,7 @@ export function BookingScreen({ route, navigation }: Props) {
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
-  const dateOptions = useMemo(() => buildDateOptions(), []);
+  const dateOptions = BOOKING_DATE_OPTIONS;
 
   useEffect(() => {
     let active = true;

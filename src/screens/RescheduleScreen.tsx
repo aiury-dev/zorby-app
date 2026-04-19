@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -24,6 +24,8 @@ function buildDateOptions() {
     return date;
   });
 }
+
+const RESCHEDULE_DATE_OPTIONS = buildDateOptions();
 
 async function resolveSlotsForDate(input: {
   business: PublicBusiness;
@@ -62,7 +64,7 @@ export function RescheduleScreen({ route, navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const dateOptions = useMemo(() => buildDateOptions(), []);
+  const dateOptions = RESCHEDULE_DATE_OPTIONS;
 
   useEffect(() => {
     let active = true;
